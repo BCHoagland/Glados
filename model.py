@@ -9,18 +9,14 @@ class CharRNN(nn.Module):
         self.n_hidden = n_hidden
 
         # network layers
-        self.lstm1 = nn.LSTM(len(self.chars), n_hidden, n_layers, dropout=drop_prob, batch_first=True)
-        self.dropout1 = nn.Dropout(drop_prob)
-        self.lstm2 = nn.LSTM(n_hidden, n_hidden, n_layers, dropout=drop_prob, batch_first=True)
-        self.dropout2 = nn.Dropout(drop_prob)
+        self.lstm = nn.LSTM(len(self.chars), n_hidden, n_layers, dropout=drop_prob, batch_first=True)
+        self.dropout = nn.Dropout(drop_prob)
         self.fc = nn.Linear(n_hidden, len(self.chars))
 
 
     def forward(self, x, hidden):
-        out, hidden = self.lstm1(x, hidden)
-        out = self.dropout1(out)
-        out, hidden = self.lstm2(out, hidden)
-        out = self.dropout2(out)
+        out, hidden = self.lstm(x, hidden)
+        out = self.dropout(out)
         out = out.contiguous().view(-1, self.n_hidden)
         out = self.fc(out)
         return out, hidden

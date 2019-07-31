@@ -144,7 +144,7 @@ def generate_text(net, size, first_chars='The', top_k=None):
     return ''.join(chars)
 
 
-net = CharRNN(chars, n_hidden=512, n_layers=2)
+net = CharRNN(chars, n_hidden=512, n_layers=5)
 box('Network Architecture')
 print(net)
 

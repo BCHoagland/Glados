@@ -9,7 +9,7 @@ from visualize import progress, plot
 
 batch_size = 128
 seq_size = 100
-vis_iter = 100
+vis_iter = 20
 device = get_device()
 
 X, Y, n_chars, char2int, int2char, num_batches = read_data('vonnegut', batch_size, seq_size)
@@ -73,5 +73,5 @@ def generate():
 '''
 "DO IT" - Palpatine
 '''
-train(epochs=100)
+train(epochs=140)
 generate()

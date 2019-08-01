@@ -5,7 +5,7 @@ from visualize import box
 from utils import get_device
 
 class RNN(nn.Module):
-    def __init__(self, n_chars, n_hidden=256, n_layers=2, drop_prob=0.5):
+    def __init__(self, n_chars, n_hidden=512, n_layers=2, drop_prob=0.5):
         super().__init__()
         
         # params

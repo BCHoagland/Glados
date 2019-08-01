@@ -7,6 +7,7 @@ def read_data(filename, batch_size, seq_size):
     # read data
     with open(f'data/{filename}', 'r') as f:
         text = f.read()
+    text = text.split()
 
     # make encoding and decoding dictionaries
     chars = set(text)

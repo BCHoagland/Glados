@@ -71,6 +71,7 @@ def generate(examples=10):
                 chars += choice
                 x, h = net(torch.tensor([[char2int[choice]]]).to(device), h)
 
+            # print the results
             print('-' * 40 + f'\n{chars}')
 
 '''

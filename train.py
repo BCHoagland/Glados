@@ -1,149 +1,77 @@
-import sys
-import pathlib
 import numpy as np
 import torch
-from torch import nn
 import torch.nn.functional as F
-from termcolor import colored
 
-from model import CharRNN
-from utils import one_hot_encode, get_batches, read_data
-from visualize import plot, plot_loss, box, progress
+from model import RNN
+from utils import read_data, batches, get_device
+from visualize import progress, plot
 
-# read in data
-try: filename = sys.argv[1]
-except: filename = 'shakespeare'
-chars, encoded_text, int2char, char2int = read_data(filename)
 
-# set device
-device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+batch_size = 128
+seq_size = 100
+vis_iter = 100
+device = get_device()
 
-# training method
-def train(net, data, epochs=10, batch_size=10, seq_length=50, lr=0.001, clip=5, val_frac=0.1, vis_iter=10, save_iter=10):
-    box(f'Training on {filename.upper()}', color='yellow')
+X, Y, n_chars, char2int, int2char, num_batches = read_data('vonnegut', batch_size, seq_size)
 
-    pathlib.Path('saved_models').mkdir(exist_ok=True)
+net = RNN(n_chars).to(device)
+opt = torch.optim.Adam(net.parameters(), lr=0.001)
 
-    net.train()
+'''
+TRAINING
+'''
+def train(epochs=20):
+    for epoch in range(epochs):
 
-    opt = torch.optim.Adam(net.parameters(), lr=lr)
-    criterion = nn.CrossEntropyLoss()
+        batch_num = 0
+        h = net.blank_hidden(batch_size)
+        for x, y in batches(X, Y, batch_size, seq_size):
+            out, h = net(x, h)
+            h = tuple([state.detach() for state in h])
 
-    # create training and validation data
-    val_idx = int(len(data)*(1-val_frac))
-    data, val_data = data[:val_idx], data[val_idx:]
+            loss = F.cross_entropy(out.transpose(1,2), y)
 
-    net = net.to(device)
-
-    counter = 0
-    n_chars = len(net.chars)
-    for e in range(epochs):
-        h = net.init_hidden(batch_size)
-
-        for x, y, epoch_part, parts_per_epoch in get_batches(data, batch_size, seq_length):
-            counter += 1
-
-            # One-hot encode our data and make them Torch tensors
-            x = one_hot_encode(x, n_chars)
-            inputs, targets = torch.from_numpy(x).to(device), torch.from_numpy(y).to(device)
-
-            # loss calculation
-            h = tuple([each.data for each in h])
-            output, h = net(inputs, h)
-            loss = criterion(output, targets.view(batch_size*seq_length).long())
-
-            # optimization step
             opt.zero_grad()
             loss.backward()
-            nn.utils.clip_grad_norm_(net.parameters(), clip)
             opt.step()
 
-            # print epoch progress
-            progress(epoch_part, parts_per_epoch, e, epochs)
+            if num_batches * epoch + batch_num % vis_iter == vis_iter - 1:
+                plot(num_batches * epoch + batch_num, loss, 'Loss', 'Training', '#FA5784')
+            progress(batch_num, num_batches, num_batches * epoch + batch_num, epochs * num_batches)                                     # FIX
 
-            # print loss stats occasionally
-            if counter % vis_iter == vis_iter - 1:
-                val_h = net.init_hidden(batch_size)
-                mean_val_loss = None
-                net.eval()
-                for x, y, _, _ in get_batches(val_data, batch_size, seq_length):
-                    x = one_hot_encode(x, n_chars)
-                    x, y = torch.from_numpy(x), torch.from_numpy(y)
-                    val_h = tuple([each.data for each in val_h])
-
-                    inputs, targets = x.to(device), y.to(device)
-
-                    output, val_h = net(inputs, val_h)
-                    val_loss = criterion(output, targets.view(batch_size*seq_length).long())
-
-                    if mean_val_loss is None: mean_val_loss = val_loss.item()
-                    else: mean_val_loss += (val_loss.item() - mean_val_loss) / counter
-
-                net.train()
-
-                plot(counter, loss, 'Loss', 'Training', '#FA5784')                                                      # PROGRESS BAR FOR % DONE W/ EPOCH
-                plot(counter, mean_val_loss, 'Loss', 'Validation', '#FFAED4')
-
-            # save model occasionally
-            if e % save_iter == save_iter - 1:
-                checkpoint = {'n_hidden': net.n_hidden, 'n_layers': net.n_layers, 'state_dict': net.state_dict(), 'tokens': net.chars}
-                with open(f'saved_models/rnn_epoch_{e+1}.net', 'wb') as f:
-                    torch.save(checkpoint, f)
+            batch_num += 1
 
 
-# Generate the next character given the previous one
-def predict_next(net, char, h=None, top_k=None):
-        x = np.array([[char2int[char]]])
-        x = one_hot_encode(x, len(net.chars))
-        inputs = torch.from_numpy(x).to(device)
+'''
+GENERATION
+'''
+def next_char(x):
+    probs, indices = torch.topk(x, k=5)
+    probs, indices = probs.squeeze().tolist(), indices.squeeze().tolist()
+    probs = [p / sum(probs) for p in probs]
+    choice = int2char[np.random.choice(indices, p=probs)]
+    return choice
 
-        # get probabilities for each character
-        h = tuple([each.data for each in h])
-        out, h = net(inputs, h)
-        p = F.softmax(out, dim=1).data.cpu()
+def generate():
+    with torch.no_grad():
+        first_chars = list('I will')
+        chars = ''.join(first_chars)
 
-        # get top characters
-        if top_k is None:
-            top_ch = np.arange(len(net.chars))
-        else:
-            p, top_ch = p.topk(top_k)
-            top_ch = top_ch.numpy().squeeze()
+        # run initial chars through model to generate hidden states
+        h = net.blank_hidden()
+        for c in first_chars:
+            x, h = net(torch.tensor([[char2int[c]]]).to(device), h)
 
-        # select the likely next character with some element of randomness
-        p = p.numpy().squeeze()
-        char = np.random.choice(top_ch, p=p / p.sum())
+        # generate new chars
+        for _ in range(100):
+            choice = next_char(x)
+            chars += choice
+            x, h = net(torch.tensor([[char2int[choice]]]).to(device), h)
 
-        # return the encoded value of the predicted char and the hidden state
-        return int2char[char], h
+        print(chars)
 
-
-# Generate `size` characters as a block of text
-def generate_text(net, size, first_chars='The', top_k=None):
-    net = net.to(device)
-
-    # run first chars through network
-    chars = [ch for ch in first_chars]
-    h = net.init_hidden(1)
-    for ch in first_chars:
-        char, h = predict_next(net, ch, h, top_k=top_k)
-
-    # generate new chars
-    chars.append(char)
-    for _ in range(size):
-        char, h = predict_next(net, chars[-1], h, top_k=top_k)
-        chars.append(char)
-
-    return ''.join(chars)
-
-# make multiple examples using the network
-def make_examples():
-    box('Results', color='green')
-    firsts = ['A', 'The', 'But', 'Can', 'No', 'So', 'Or']
-    for first_chars in firsts:
-        print(generate_text(net, 1000, first_chars=first_chars, top_k=5))
-        print('=' * 40)
-
-# training
-net = CharRNN(chars, n_hidden=512, n_layers=2)
-train(net, encoded_text, epochs=20, batch_size=128, seq_length=100, lr=0.001, vis_iter=20)
-make_examples()
+'''
+"DO IT" - Palpatine
+'''
+train(epochs=100)
+generate()

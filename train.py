@@ -54,10 +54,9 @@ def next_char(x):
     choice = int2char[np.random.choice(indices, p=probs)]
     return choice
 
-def generate(examples=10):
+def generate(first_chars=['A'], examples=10):
     with torch.no_grad():
         for _ in range(examples):
-            first_chars = list('I will')
             chars = ''.join(first_chars)
 
             # run initial chars through model to generate hidden states

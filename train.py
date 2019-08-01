@@ -68,8 +68,8 @@ def generate(first_chars=['A'], examples=10, use_words=False):
             # generate new chars
             for _ in range(100):
                 choice = next_char(x)
-                if use_words: choice += ' '
-                chars += choice
+                if use_words: chars += choice + ' '
+                else: chars += choice
                 x, h = net(torch.tensor([[char2int[choice]]]).to(device), h)
 
             # print the results

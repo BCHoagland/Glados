@@ -1,39 +1,27 @@
+import torch
 import torch.nn as nn
+
 from visualize import box
 
-class CharRNN(nn.Module):
-    def __init__(self, tokens, n_hidden=256, n_layers=2, drop_prob=0.5):
-        super().__init__()
-
-        self.chars = tokens
-        self.n_layers = n_layers
-        self.n_hidden = n_hidden
-
-        # network layers
-        self.lstm = nn.LSTM(len(self.chars), n_hidden, n_layers, dropout=drop_prob, batch_first=True)
-        self.dropout = nn.Dropout(drop_prob)
-        self.fc = nn.Linear(n_hidden, len(self.chars))
+class RNN(nn.Module):
+    def __init__(self, n_vocab, seq_size, embedding_size, lstm_size):
+        super(RNN, self).__init__()
+        self.seq_size = seq_size
+        self.lstm_size = lstm_size
+        self.embedding = nn.Embedding(n_vocab, embedding_size)
+        self.lstm = nn.LSTM(embedding_size, lstm_size, batch_first=True)
+        self.dense = nn.Linear(lstm_size, n_vocab)
 
         box('Network Architecture')
         print(self)
 
+    def forward(self, x, prev_state):
+        embed = self.embedding(x)
+        output, state = self.lstm(embed, prev_state)
+        logits = self.dense(output)
 
-    def forward(self, x, hidden):
-        out, hidden = self.lstm(x, hidden)
-        out = self.dropout(out)
-        out = out.contiguous().view(-1, self.n_hidden)
-        out = self.fc(out)
-        return out, hidden
+        return logits, state
 
-
-    def init_hidden(self, batch_size, train_on_gpu=False):
-        weight = next(self.parameters()).data
-
-        if (train_on_gpu):
-            hidden = (weight.new(self.n_layers, batch_size, self.n_hidden).zero_().cuda(),
-                      weight.new(self.n_layers, batch_size, self.n_hidden).zero_().cuda())
-        else:
-            hidden = (weight.new(self.n_layers, batch_size, self.n_hidden).zero_(),
-                      weight.new(self.n_layers, batch_size, self.n_hidden).zero_())
-
-        return hidden
+    def zero_state(self, batch_size):
+        return (torch.zeros(1, batch_size, self.lstm_size),
+                torch.zeros(1, batch_size, self.lstm_size))

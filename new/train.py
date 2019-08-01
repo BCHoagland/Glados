@@ -9,10 +9,11 @@ from visualize import progress, plot
 
 batch_size = 128
 seq_size = 100
+device = get_device()
 
 X, Y, n_chars, char2int, int2char, num_batches = read_data('vonnegut', batch_size, seq_size)
 
-net = RNN(n_chars).to(get_device())
+net = RNN(n_chars)
 opt = torch.optim.Adam(net.parameters(), lr=0.001)
 
 '''
@@ -57,13 +58,13 @@ def generate():
         # run initial chars through model to generate hidden states
         h = net.blank_hidden()
         for c in first_chars:
-            x, h = net(torch.tensor([[char2int[c]]]), h)
+            x, h = net(torch.tensor([[char2int[c]]]).to(device), h)
 
         # generate new chars
         for _ in range(100):
             choice = next_char(x)
             chars += choice
-            x, h = net(torch.tensor([[char2int[choice]]]), h)
+            x, h = net(torch.tensor([[char2int[choice]]]).to(device), h)
 
         print(chars)
 

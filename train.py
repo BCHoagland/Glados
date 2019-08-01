@@ -150,6 +150,6 @@ print(net)
 
 # train the model
 box(f'Training on {filename.upper()}', color='yellow')
-train(net, encoded_text, epochs=100, batch_size=128, seq_length=100, lr=0.001, vis_iter=20)
+train(net, encoded_text, epochs=60, batch_size=128, seq_length=100, lr=0.001, vis_iter=20)
 box('Results', color='green')
 print(generate_text(net, 1000, first_chars='A', top_k=5))

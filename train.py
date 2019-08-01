@@ -54,23 +54,24 @@ def next_char(x):
     choice = int2char[np.random.choice(indices, p=probs)]
     return choice
 
-def generate():
+def generate(examples=10):
     with torch.no_grad():
-        first_chars = list('I will')
-        chars = ''.join(first_chars)
+        for _ in range(examples):
+            first_chars = list('I will')
+            chars = ''.join(first_chars)
 
-        # run initial chars through model to generate hidden states
-        h = net.blank_hidden()
-        for c in first_chars:
-            x, h = net(torch.tensor([[char2int[c]]]).to(device), h)
+            # run initial chars through model to generate hidden states
+            h = net.blank_hidden()
+            for c in first_chars:
+                x, h = net(torch.tensor([[char2int[c]]]).to(device), h)
 
-        # generate new chars
-        for _ in range(100):
-            choice = next_char(x)
-            chars += choice
-            x, h = net(torch.tensor([[char2int[choice]]]).to(device), h)
+            # generate new chars
+            for _ in range(100):
+                choice = next_char(x)
+                chars += choice
+                x, h = net(torch.tensor([[char2int[choice]]]).to(device), h)
 
-        print(chars)
+            print('-' * 40 + f'\n{chars}')
 
 '''
 "DO IT" - Palpatine

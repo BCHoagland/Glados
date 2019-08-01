@@ -56,12 +56,14 @@ def train(net, data, epochs=10, batch_size=10, seq_length=50, lr=0.001, clip=5, 
             # detach hidden states from computation graph
             h = tuple([each.data for each in h])
 
+            opt.zero_grad()
+
             # loss calculation
             output, h = net(inputs, h)
             loss = criterion(output, targets.view(batch_size*seq_length).long())
 
             # optimization step
-            opt.zero_grad()
+
             loss.backward()
             nn.utils.clip_grad_norm_(net.parameters(), clip)
             opt.step()
@@ -150,10 +152,10 @@ print(net)
 
 # train the model
 box(f'Training on {filename.upper()}', color='yellow')
-train(net, encoded_text, epochs=50, batch_size=128, seq_length=100, lr=0.001, vis_iter=20)
+train(net, encoded_text, epochs=30, batch_size=128, seq_length=100, lr=0.001, vis_iter=20)
 
 box('Results', color='green')
 firsts = ['A', 'The', 'But', 'Can', 'No', 'So', 'Or']
 for first_chars in firsts:
-    print(generate_text(net, 200, first_chars=first_chars, top_k=5))
+    print(generate_text(net, 500, first_chars=first_chars, top_k=5))
     print('-' * 30)

@@ -9,6 +9,7 @@ from visualize import progress, plot
 
 batch_size = 128
 seq_size = 100
+vis_iter = 100
 device = get_device()
 
 X, Y, n_chars, char2int, int2char, num_batches = read_data('vonnegut', batch_size, seq_size)
@@ -34,8 +35,9 @@ def train(epochs=20):
             loss.backward()
             opt.step()
 
-            plot(num_batches * epoch + batch_num, loss, 'Loss', 'Training', '#FA5784')
-            progress(batch_num, num_batches, num_batches * epoch + batch_num, epochs * num_batches)
+            if num_batches * epoch + batch_num % vis_iter == vis_iter - 1:
+                plot(num_batches * epoch + batch_num, loss, 'Loss', 'Training', '#FA5784')
+                progress(batch_num, num_batches, num_batches * epoch + batch_num, epochs * num_batches)                                     # FIX
 
             batch_num += 1
 
@@ -71,5 +73,5 @@ def generate():
 '''
 "DO IT" - Palpatine
 '''
-train()
+train(epochs=100)
 generate()

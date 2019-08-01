@@ -153,6 +153,7 @@ box(f'Training on {filename.upper()}', color='yellow')
 train(net, encoded_text, epochs=50, batch_size=128, seq_length=100, lr=0.001, vis_iter=20)
 
 box('Results', color='green')
-for _ in range(10):
-    print(generate_text(net, 200, first_chars='A', top_k=5))
+firsts = ['A', 'The', 'But', 'Can', 'No', 'So', 'Or']
+for first_chars in firsts:
+    print(generate_text(net, 200, first_chars=first_chars, top_k=5))
     print('-' * 30)

@@ -47,18 +47,18 @@ def train(epochs=20):
 '''
 GENERATION
 '''
-def next_char(x, use_words=False):
+def next_char(x):
     probs, indices = torch.topk(x, k=5)
     probs, indices = probs.squeeze().tolist(), indices.squeeze().tolist()
     probs = [p / sum(probs) for p in probs]
     choice = int2char[np.random.choice(indices, p=probs)]
-    if use_words: choice += ' '
     return choice
 
 def generate(first_chars=['A'], examples=10, use_words=False):
     with torch.no_grad():
         for _ in range(examples):
-            chars = ''.join(first_chars)
+            if use_words: chars = ' '.join(first_chars)
+            else: chars = ''.join(first_chars)
 
             # run initial chars through model to generate hidden states
             h = net.blank_hidden()
@@ -68,6 +68,7 @@ def generate(first_chars=['A'], examples=10, use_words=False):
             # generate new chars
             for _ in range(100):
                 choice = next_char(x, use_words)
+                if use_words: choice += ' '
                 chars += choice
                 x, h = net(torch.tensor([[char2int[choice]]]).to(device), h)
 

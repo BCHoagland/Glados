@@ -13,7 +13,7 @@ device = get_device()
 
 X, Y, n_chars, char2int, int2char, num_batches = read_data('vonnegut', batch_size, seq_size)
 
-net = RNN(n_chars)
+net = RNN(n_chars).to(device)
 opt = torch.optim.Adam(net.parameters(), lr=0.001)
 
 '''

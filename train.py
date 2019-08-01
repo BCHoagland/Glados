@@ -47,14 +47,15 @@ def train(epochs=20):
 '''
 GENERATION
 '''
-def next_char(x):
+def next_char(x, use_words=False):
     probs, indices = torch.topk(x, k=5)
     probs, indices = probs.squeeze().tolist(), indices.squeeze().tolist()
     probs = [p / sum(probs) for p in probs]
     choice = int2char[np.random.choice(indices, p=probs)]
+    if use_words: choice += ' '
     return choice
 
-def generate(first_chars=['A'], examples=10):
+def generate(first_chars=['A'], examples=10, use_words=False):
     with torch.no_grad():
         for _ in range(examples):
             chars = ''.join(first_chars)
@@ -66,7 +67,7 @@ def generate(first_chars=['A'], examples=10):
 
             # generate new chars
             for _ in range(100):
-                choice = next_char(x)
+                choice = next_char(x, use_words)
                 chars += choice
                 x, h = net(torch.tensor([[char2int[choice]]]).to(device), h)
 
@@ -77,4 +78,4 @@ def generate(first_chars=['A'], examples=10):
 "DO IT" - Palpatine
 '''
 train(epochs=140)
-generate()
+generate(use_words=True)

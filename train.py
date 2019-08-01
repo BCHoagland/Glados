@@ -152,10 +152,10 @@ print(net)
 
 # train the model
 box(f'Training on {filename.upper()}', color='yellow')
-train(net, encoded_text, epochs=30, batch_size=128, seq_length=100, lr=0.001, vis_iter=20)
+train(net, encoded_text, epochs=20, batch_size=128, seq_length=100, lr=0.001, vis_iter=20)
 
 box('Results', color='green')
 firsts = ['A', 'The', 'But', 'Can', 'No', 'So', 'Or']
 for first_chars in firsts:
-    print(generate_text(net, 500, first_chars=first_chars, top_k=5))
-    print('-' * 30)
+    print(generate_text(net, 1000, first_chars=first_chars, top_k=5))
+    print('=' * 40)

@@ -5,7 +5,7 @@ def get_device():
 
 def read_data(filename, batch_size, seq_size):
     # read data
-    with open(f'../data/{filename}', 'r') as f:
+    with open(f'data/{filename}', 'r') as f:
         text = f.read()
 
     # make encoding and decoding dictionaries

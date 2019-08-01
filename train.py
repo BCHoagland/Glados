@@ -7,8 +7,8 @@ import torch.nn.functional as F
 from termcolor import colored
 
 from model import CharRNN
-from utils import *
-from visualize import *
+from utils import one_hot_encode, get_batches
+from visualize import plot, plot_loss, box, progress
 
 # read text and make character conversion utilities
 try:
@@ -67,8 +67,7 @@ def train(net, data, epochs=10, batch_size=10, seq_length=50, lr=0.001, clip=5, 
             opt.step()
 
             # print epoch progress
-            progress(epoch_part, parts_per_epoch, f'Epoch {e+1}/{epochs}')
-            if e == epochs - 1 and epoch_part == parts_per_epoch - 1: print()
+            progress(epoch_part, parts_per_epoch, e, epochs)
 
             # print loss stats occasionally
             if counter % vis_iter == vis_iter - 1:

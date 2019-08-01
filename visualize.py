@@ -91,19 +91,15 @@ def get_color(ratio):
 def rgb_colored(text, rgb):
     return f'\x1b[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m{text}\x1b[0m'
 
-def progress(i, total, action):
-    i = i + 1
-    ratio = i / total
-    percent = 100 * ratio
-    filled = int(round(20 * ratio))
+def progress(x, X, y, Y):
+    x, y = x + 1, y + 1
+    x_ratio, y_ratio = x / X, y / Y
+    x_filled, y_filled = int(round(20 * x_ratio)), int(round(20 * y_ratio))
+    x_bar, y_bar = '█' * x_filled + '-' * (20 - x_filled), '█' * y_filled + '-' * (20 - y_filled)
 
-    bar = '█' * filled + '-' * (20 - filled)
+    x_color, y_color = get_color(x_ratio), get_color(y_ratio)
+    x_percent, y_percent = rgb_colored(f'{100 * x_ratio:.0f}%', x_color), rgb_colored(f'{100 * y_ratio:.0f}%', y_color)
 
-    color = get_color(ratio)
-
-    sys.stdout.write('\r%s |%s| ' % (action.ljust(30), bar) + rgb_colored('{0:.0f}%'.format(percent), color) + ' ')
-
-    # if i == total:
-    #     sys.stdout.write('\n')
-
+    sys.stdout.write(f'\rEpoch {y} |{x_bar}| {x_percent} \t\t Total |{y_bar}| {y_percent}')
+    if x == X and y == Y: sys.stdout.write('\n')
     sys.stdout.flush()

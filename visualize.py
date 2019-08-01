@@ -92,6 +92,11 @@ def rgb_colored(text, rgb):
     return f'\x1b[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m{text}\x1b[0m'
 
 def progress(x, X, y, Y):
+    '''
+    x / X: current inner loop / max inner loop
+    y / Y: current outer loop / max outer loop
+    '''
+
     x, y = x + 1, y + 1
     x_ratio, y_ratio = x / X, y / Y
     x_filled, y_filled = int(round(20 * x_ratio)), int(round(20 * y_ratio))

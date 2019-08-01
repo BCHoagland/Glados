@@ -1,4 +1,5 @@
 import torch.nn as nn
+from visualize import box
 
 class CharRNN(nn.Module):
     def __init__(self, tokens, n_hidden=256, n_layers=2, drop_prob=0.5):
@@ -12,6 +13,9 @@ class CharRNN(nn.Module):
         self.lstm = nn.LSTM(len(self.chars), n_hidden, n_layers, dropout=drop_prob, batch_first=True)
         self.dropout = nn.Dropout(drop_prob)
         self.fc = nn.Linear(n_hidden, len(self.chars))
+
+        box('Network Architecture')
+        print(self)
 
 
     def forward(self, x, hidden):

@@ -7,27 +7,21 @@ import torch.nn.functional as F
 from termcolor import colored
 
 from model import CharRNN
-from utils import one_hot_encode, get_batches
+from utils import one_hot_encode, get_batches, read_data
 from visualize import plot, plot_loss, box, progress
 
-# read text and make character conversion utilities
-try:
-    filename = sys.argv[1]
-except:
-    filename = 'shakespeare'
-
-with open(f'data/{filename}', 'r') as f:
-    text = f.read()
-chars = tuple(set(text))
-int2char = dict(enumerate(chars))
-char2int = {ch: ii for ii, ch in int2char.items()}
-encoded_text = np.array([char2int[ch] for ch in text])
+# read in data
+try: filename = sys.argv[1]
+except: filename = 'shakespeare'
+chars, encoded_text, int2char, char2int = read_data(filename)
 
 # set device
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
 # training method
 def train(net, data, epochs=10, batch_size=10, seq_length=50, lr=0.001, clip=5, val_frac=0.1, vis_iter=10, save_iter=10):
+    box(f'Training on {filename.upper()}', color='yellow')
+
     pathlib.Path('saved_models').mkdir(exist_ok=True)
 
     net.train()
@@ -53,10 +47,8 @@ def train(net, data, epochs=10, batch_size=10, seq_length=50, lr=0.001, clip=5, 
             x = one_hot_encode(x, n_chars)
             inputs, targets = torch.from_numpy(x).to(device), torch.from_numpy(y).to(device)
 
-            # detach hidden states from computation graph
-            h = tuple([each.data for each in h])
-
             # loss calculation
+            h = tuple([each.data for each in h])
             output, h = net(inputs, h)
             loss = criterion(output, targets.view(batch_size*seq_length).long())
 
@@ -105,9 +97,10 @@ def predict_next(net, char, h=None, top_k=None):
         x = one_hot_encode(x, len(net.chars))
         inputs = torch.from_numpy(x).to(device)
 
-        h = tuple([each.data for each in h])                                    # detach hidden state from history
-        out, h = net(inputs, h)                                                 # get the output of the model
-        p = F.softmax(out, dim=1).data.cpu()                                    # get the character probabilities
+        # get probabilities for each character
+        h = tuple([each.data for each in h])
+        out, h = net(inputs, h)
+        p = F.softmax(out, dim=1).data.cpu()
 
         # get top characters
         if top_k is None:
@@ -142,17 +135,15 @@ def generate_text(net, size, first_chars='The', top_k=None):
 
     return ''.join(chars)
 
+# make multiple examples using the network
+def make_examples():
+    box('Results', color='green')
+    firsts = ['A', 'The', 'But', 'Can', 'No', 'So', 'Or']
+    for first_chars in firsts:
+        print(generate_text(net, 1000, first_chars=first_chars, top_k=5))
+        print('=' * 40)
 
+# training
 net = CharRNN(chars, n_hidden=512, n_layers=2)
-box('Network Architecture')
-print(net)
-
-# train the model
-box(f'Training on {filename.upper()}', color='yellow')
 train(net, encoded_text, epochs=20, batch_size=128, seq_length=100, lr=0.001, vis_iter=20)
-
-box('Results', color='green')
-firsts = ['A', 'The', 'But', 'Can', 'No', 'So', 'Or']
-for first_chars in firsts:
-    print(generate_text(net, 1000, first_chars=first_chars, top_k=5))
-    print('=' * 40)
+make_examples()

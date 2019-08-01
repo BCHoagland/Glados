@@ -44,3 +44,14 @@ def get_batches(arr, batch_size, seq_length):
         except IndexError:
             y[:, :-1], y[:, -1] = x[:, 1:], arr[:, 0]
         yield x, y, i, iters
+
+# read text and make character conversion utilities
+def read_data(filename):
+    with open(f'data/{filename}', 'r') as f:
+        text = f.read()
+    chars = tuple(set(text))
+    int2char = dict(enumerate(chars))
+    char2int = {ch: ii for ii, ch in int2char.items()}
+    encoded_text = np.array([char2int[ch] for ch in text])
+
+    return chars, encoded_text, int2char, char2int

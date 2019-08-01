@@ -35,7 +35,7 @@ def train(epochs=20):
             loss.backward()
             opt.step()
 
-            if num_batches * epoch + batch_num % vis_iter == vis_iter - 1:
+            if (num_batches * epoch + batch_num) % vis_iter == vis_iter - 1:
                 plot(num_batches * epoch + batch_num, loss, 'Loss', 'Training', '#FA5784')
             progress(batch_num, num_batches, num_batches * epoch + batch_num, epochs * num_batches)                                     # FIX
 

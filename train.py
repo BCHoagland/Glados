@@ -10,12 +10,13 @@ from visualize import progress, plot
 batch_size = 128
 seq_size = 100
 vis_iter = 20
+grad_norm = 5
 device = get_device()
 
 X, Y, n_chars, char2int, int2char, num_batches = read_data('vonnegut', batch_size, seq_size)
 
 net = RNN(n_chars).to(device)
-opt = torch.optim.Adam(net.parameters(), lr=0.001)
+opt = torch.optim.Adam(net.parameters(), lr=0.005)
 
 '''
 TRAINING
@@ -33,6 +34,7 @@ def train(epochs=20):
 
             opt.zero_grad()
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(net.parameters(), grad_norm)
             opt.step()
 
             if (num_batches * epoch + batch_num) % vis_iter == vis_iter - 1:

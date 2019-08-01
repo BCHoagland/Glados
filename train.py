@@ -56,14 +56,12 @@ def train(net, data, epochs=10, batch_size=10, seq_length=50, lr=0.001, clip=5, 
             # detach hidden states from computation graph
             h = tuple([each.data for each in h])
 
-            opt.zero_grad()
-
             # loss calculation
             output, h = net(inputs, h)
             loss = criterion(output, targets.view(batch_size*seq_length).long())
 
             # optimization step
-
+            opt.zero_grad()
             loss.backward()
             nn.utils.clip_grad_norm_(net.parameters(), clip)
             opt.step()

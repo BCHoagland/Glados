@@ -45,7 +45,7 @@ def train(epochs=20):
             opt.step()
 
             # print progress occasionally
-            if (num_batches * epoch + batch_num) % vis_iter == vis_iter - 1:
+            if iters % vis_iter == vis_iter - 1:
                 plot(iters, loss, 'Loss', 'Training', '#FA5784')
             progress(batch_num, num_batches, iters, epochs * num_batches, epoch)
 
@@ -99,6 +99,5 @@ def generate(first_chars='A', example_len=100, examples=1):
 '''
 "DO IT" - Palpatine
 '''
-# train(epochs=30)
-train(epochs=1)
+train(epochs=30)
 generate(example_len=1000, examples=4)

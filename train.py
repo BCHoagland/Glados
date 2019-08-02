@@ -26,6 +26,7 @@ opt = torch.optim.Adam(net.parameters(), lr=0.005)
 '''
 TRAINING
 '''
+# get loss for all validation batches
 def validation_loss():
     with torch.no_grad():
         val_losses = []
@@ -35,13 +36,15 @@ def validation_loss():
             val_loss = F.cross_entropy(out_val.transpose(1,2), y)
             val_losses.append(val_loss)
         val_losses = torch.stack(val_losses)
-    return val_losses.mean()                                                            # ERROR BARS IN GRAPHS
+    return val_losses
 
+# train network
 def train(epochs=20):
     iters = 0
     for epoch in range(epochs):
 
         batch_num = 0
+        losses = []
         h = net.blank_hidden(batch_size)
         for x, y in batches(X, Y, batch_size, seq_size):
 
@@ -56,15 +59,17 @@ def train(epochs=20):
             torch.nn.utils.clip_grad_norm_(net.parameters(), grad_norm)
             opt.step()
 
-            # print progress occasionally
-            if iters % vis_iter == vis_iter - 1:
-                plot(iters, loss, 'Loss', 'Training', '#FA5784')
-                plot(iters, validation_loss(), 'Loss', 'Validation', '#9E003C')
-
+            # print training progress
             progress(batch_num, num_batches, iters, epochs * num_batches, epoch)
 
+            # bookkeeping
+            losses.append(loss)
             batch_num += 1
             iters += 1
+
+        # plot loss after every epoch
+        plot(epoch, torch.stack(losses), 'Loss', 'Training', '#5DE58D', refresh=False)
+        plot(epoch, validation_loss(), 'Loss', 'Validation', '#4AD2FF')
 
 
 '''

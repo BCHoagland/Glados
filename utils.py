@@ -1,13 +1,18 @@
 import torch
+import torch.nn.functional as F
 
 def get_device():
     return 'cuda:0' if torch.cuda.is_available() else 'cpu'
+
+
+def one_hot(arr, n_labels):
+    return F.one_hot(arr, n_labels).float()
+
 
 def read_data(filename, batch_size, seq_size):
     # read data
     with open(f'data/{filename}', 'r') as f:
         text = f.read()
-    text = text.split()
 
     # make encoding and decoding dictionaries
     chars = set(text)
@@ -20,13 +25,16 @@ def read_data(filename, batch_size, seq_size):
 
     # make data into batches
     device = get_device()
-    X = torch.tensor(encoded[:-1]).view(batch_size, -1).to(device)
-    Y = torch.tensor(encoded[1:]).view(batch_size, -1).to(device)
+    X = torch.tensor(encoded[:-1]).view(batch_size, -1)
+    Y = torch.tensor(encoded[1:]).view(batch_size, -1)
+
+    # ont hot encode the input data
+    X = one_hot(X, len(chars))
 
     # get number of batches per epoch
     num_batches = X.shape[1] // seq_size
 
-    return X, Y, len(chars), char2int, int2char, num_batches
+    return X.to(device), Y.to(device), len(chars), char2int, int2char, num_batches
 
 
 def batches(X, Y, batch_size, seq_size):

@@ -91,10 +91,11 @@ def get_color(ratio):
 def rgb_colored(text, rgb):
     return f'\x1b[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m{text}\x1b[0m'
 
-def progress(x, X, y, Y):
+def progress(x, X, y, Y, epoch_num):
     '''
     x / X: current inner loop / max inner loop
     y / Y: current outer loop / max outer loop
+    epoch_num: number of current epoch
     '''
 
     x, y = x + 1, y + 1
@@ -105,6 +106,6 @@ def progress(x, X, y, Y):
     x_color, y_color = get_color(x_ratio), get_color(y_ratio)
     x_percent, y_percent = rgb_colored(f'{100 * x_ratio:.0f}%', x_color), rgb_colored(f'{100 * y_ratio:.0f}%', y_color)
 
-    sys.stdout.write(f'\rEpoch {y} |{x_bar}| {x_percent} \t\t Total |{y_bar}| {y_percent}')
+    sys.stdout.write(f'\rEpoch {epoch_num} |{x_bar}| {x_percent} \t\t Total |{y_bar}| {y_percent}')
     if x == X and y == Y: sys.stdout.write('\n')
     sys.stdout.flush()

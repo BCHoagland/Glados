@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-from visualize import box
 from utils import get_device
 
 class RNN(nn.Module):
@@ -14,17 +13,12 @@ class RNN(nn.Module):
         self.device = get_device()
 
         # network layers
-        self.embed = nn.Embedding(n_chars, n_hidden)
-        self.lstm = nn.LSTM(n_hidden, n_hidden, n_layers, dropout=drop_prob, batch_first=True)
+        self.lstm = nn.LSTM(n_chars, n_hidden, n_layers, dropout=drop_prob, batch_first=True)
         self.dropout = nn.Dropout(drop_prob)
         self.linear = nn.Linear(n_hidden, n_chars)
 
-        # box('Network Architecture')
-        # print(self)
-
 
     def forward(self, x, hidden):
-        x = self.embed(x)
         out, hidden = self.lstm(x, hidden)
         out = self.dropout(out)
         out = self.linear(out)

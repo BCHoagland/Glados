@@ -16,15 +16,27 @@ device = get_device()
 # generate dataset
 try: filename = sys.argv[1]
 except: filename = 'shakespeare'
-X, Y, n_chars, char2int, int2char, num_batches = read_data(filename, batch_size, seq_size)
+X, Y, X_val, Y_val, n_chars, char2int, int2char, num_batches = read_data(filename, batch_size, seq_size)
 
 # make network and optimizer
 net = RNN(n_chars).to(device)
 opt = torch.optim.Adam(net.parameters(), lr=0.005)
 
+
 '''
 TRAINING
 '''
+def validation_loss():
+    with torch.no_grad():
+        val_losses = []
+        val_h = net.blank_hidden(batch_size)
+        for x, y in batches(X_val, Y_val, batch_size, seq_size):
+            out_val, val_h = net(x, val_h)
+            val_loss = F.cross_entropy(out_val.transpose(1,2), y)
+            val_losses.append(val_loss)
+        val_losses = torch.stack(val_losses)
+    return val_losses.mean()                                                            # ERROR BARS IN GRAPHS
+
 def train(epochs=20):
     iters = 0
     for epoch in range(epochs):
@@ -47,6 +59,8 @@ def train(epochs=20):
             # print progress occasionally
             if iters % vis_iter == vis_iter - 1:
                 plot(iters, loss, 'Loss', 'Training', '#FA5784')
+                plot(iters, validation_loss(), 'Loss', 'Validation', '#9E003C')
+
             progress(batch_num, num_batches, iters, epochs * num_batches, epoch)
 
             batch_num += 1

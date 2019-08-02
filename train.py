@@ -1,5 +1,4 @@
 import sys
-import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -60,15 +59,12 @@ GENERATION
 # convert network output to character
 def net2char(x, top_k=5):
     # get top k probabilities
-    probs, indices = torch.topk(x.squeeze(), k=top_k)
-    # probs = F.softmax(x.squeeze(), dim=0)
-    # probs, indices = torch.topk(probs, k=top_k)
+    probs = F.softmax(x.squeeze(), dim=0)
+    probs, choices = torch.topk(probs, k=top_k)
 
     # sample from the top k choices
-    probs, indices = probs.tolist(), indices.tolist()
-    probs = [p / sum(probs) for p in probs]
-    c = int2char[np.random.choice(indices, p=probs)]                                        # what about torch.multinomial instead
-    return c
+    idx = torch.multinomial(probs, 1)
+    return int2char[choices[idx].item()]
 
 # take a single character and encode it so it works as network input
 def format_input(x):
@@ -76,7 +72,7 @@ def format_input(x):
     return one_hot(x, n_chars).to(device)
 
 # generate multiple example text chunks
-def generate(first_chars='A', example_len=100, examples=10):
+def generate(first_chars='A', example_len=100, examples=1):
     with torch.no_grad():
         for _ in range(examples):
             first_chars = list(first_chars)
@@ -103,5 +99,6 @@ def generate(first_chars='A', example_len=100, examples=10):
 '''
 "DO IT" - Palpatine
 '''
-train(epochs=30)
+# train(epochs=30)
+train(epochs=1)
 generate(example_len=1000, examples=4)

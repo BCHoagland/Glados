@@ -1,46 +1,43 @@
-import numpy as np
-import math
+import torch
+import torch.nn.functional as F
 
-def one_hot_encode(arr, n_labels):
-    one_hot = np.zeros((np.multiply(*arr.shape), n_labels), dtype=np.float32)
-    one_hot[np.arange(one_hot.shape[0]), arr.flatten()] = 1.
-    one_hot = one_hot.reshape((*arr.shape, n_labels))
-    return one_hot
+def get_device():
+    return 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
-def get_batches(arr, batch_size, seq_length):
-    '''Create a generator that returns batches of size
-       batch_size x seq_length from arr.
 
-       Arguments
-       ---------
-       arr: Array you want to make batches from
-       batch_size: Batch size, the number of sequences per batch
-       seq_length: Number of encoded chars in a sequence
-    '''
+def one_hot(arr, n_labels):
+    return F.one_hot(arr, n_labels).float()
 
-    batch_size_total = batch_size * seq_length
-    # total number of batches we can make
-    n_batches = len(arr)//batch_size_total
 
-    # Keep only enough characters to make full batches
-    arr = arr[:n_batches * batch_size_total]
-    # Reshape into batch_size rows
-    arr = arr.reshape((batch_size, -1))
+def read_data(filename, batch_size, seq_size):
+    # read data
+    with open(f'data/{filename}', 'r') as f:
+        text = f.read()
 
-    iters = math.ceil(arr.shape[1] / seq_length)
+    # make encoding and decoding dictionaries
+    chars = set(text)
+    int2char = dict(enumerate(chars))
+    char2int = {v: k for k, v in int2char.items()}
+    
+    # make data divisible by batch and sequence sizes
+    idx = -(len(text) % (batch_size * seq_size))
+    encoded = [char2int[c] for c in text][:idx+1]
 
-    i = -1
-    # iterate through the array, one sequence at a time
-    for n in range(0, arr.shape[1], seq_length):
-        i += 1
+    # make data into batches
+    device = get_device()
+    X = torch.tensor(encoded[:-1]).view(batch_size, -1)
+    Y = torch.tensor(encoded[1:]).view(batch_size, -1)
 
-        # The features
-        x = arr[:, n:n+seq_length]
-        # The targets, shifted by one
-        y = np.zeros_like(x)
+    # ont hot encode the input data
+    X = one_hot(X, len(chars))
 
-        try:
-            y[:, :-1], y[:, -1] = x[:, 1:], arr[:, n+seq_length]
-        except IndexError:
-            y[:, :-1], y[:, -1] = x[:, 1:], arr[:, 0]
-        yield x, y, i, iters
+    # get number of batches per epoch
+    num_batches = X.shape[1] // seq_size
+
+    return X.to(device), Y.to(device), len(chars), char2int, int2char, num_batches
+
+
+def batches(X, Y, batch_size, seq_size):
+    num_batches = X.shape[1] // seq_size
+    for i in range(num_batches):
+        yield X[:, i*seq_size:(i+1)*seq_size], Y[:, i*seq_size:(i+1)*seq_size]

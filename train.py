@@ -19,9 +19,9 @@ if len(sys.argv) <= 1:
     except: filename = 'shakespeare'
 else:
     filename = condense(sys.argv[1:])
-    
+
 X, Y, X_val, Y_val, n_chars, char2int, int2char, num_batches = read_data(filename, batch_size, seq_size)
-del_tmp()
+del_tmp(filename)
 
 # make network and optimizer
 net = RNN(n_chars).to(device)

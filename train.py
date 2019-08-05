@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 from model import RNN
-from utils import read_data, one_hot, batches, get_device
+from utils import read_data, one_hot, batches, get_device, condense, del_tmp
 from visualize import progress, plot
 
 
@@ -14,9 +14,14 @@ grad_norm = 5
 device = get_device()
 
 # generate dataset
-try: filename = sys.argv[1]
-except: filename = 'shakespeare'
+if len(sys.argv) <= 1:
+    try: filename = sys.argv[1]
+    except: filename = 'shakespeare'
+else:
+    filename = condense(sys.argv[1:])
+    
 X, Y, X_val, Y_val, n_chars, char2int, int2char, num_batches = read_data(filename, batch_size, seq_size)
+del_tmp()
 
 # make network and optimizer
 net = RNN(n_chars).to(device)

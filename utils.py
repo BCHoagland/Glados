@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+from os import remove
 
 def get_device():
     return 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -8,8 +9,20 @@ def get_device():
 def one_hot(arr, n_labels):
     return F.one_hot(arr, n_labels).float()
 
+def condense(filenames):
+    with open('data/tmp.txt', 'w') as outfile:
+        for fname in filenames:
+            print(fname)
+            with open(f'data/{fname}') as infile:
+                for line in infile:
+                    outfile.write(line)
+    return 'tmp.txt'
+
+def del_tmp():
+    remove('data/tmp.txt')
 
 def read_data(filename, batch_size, seq_size, val_ratio=0.1):
+
     # read data
     with open(f'data/{filename}', 'r') as f:
         text = f.read()

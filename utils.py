@@ -10,15 +10,15 @@ def one_hot(arr, n_labels):
     return F.one_hot(arr, n_labels).float()
 
 def condense(filenames):
-    with open(f'data/{filenames}.txt', 'w') as outfile:
+    with open(f'data/{"-".join(filenames)}.txt', 'w') as outfile:
         for fname in filenames:
             with open(f'data/{fname}') as infile:
                 for line in infile:
                     outfile.write(line)
-    return f'{filenames}.txt'
+    return f'{"-".join(filenames)}.txt'
 
 def del_tmp(filename):
-    remove('data/tmp.txt')
+    remove(filename)
 
 def read_data(filename, batch_size, seq_size, val_ratio=0.1):
 

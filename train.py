@@ -91,32 +91,40 @@ def format_input(x):
     return one_hot(x, n_chars).to(device)
 
 # generate multiple example text chunks
-def generate(first_chars='A', example_len=100, examples=1):
+def generate(first_chars='A', example_len=100):
     with torch.no_grad():
-        for _ in range(examples):
-            first_chars = list(first_chars)
-            chars = ''.join(first_chars)
+        first_chars = list(first_chars)
+        chars = ''.join(first_chars)
 
-            # run initial chars through model to generate hidden states
-            h = net.blank_hidden()
-            for c in first_chars:
-                inp = format_input(c)
-                x, h = net(inp, h)
+        # run initial chars through model to generate hidden states
+        h = net.blank_hidden()
+        for c in first_chars:
+            inp = format_input(c)
+            x, h = net(inp, h)
 
-            # generate new chars
-            for _ in range(example_len):
-                choice = net2char(x)
-                chars += choice
+        # generate new chars
+        for _ in range(example_len):
+            choice = net2char(x)
+            chars += choice
 
-                inp = format_input(choice)
-                x, h = net(inp, h)
+            inp = format_input(choice)
+            x, h = net(inp, h)
 
-            # print the results
-            print('-' * 40 + f'\n{chars}')
+        # print the results
+        return f'\n{chars}'
 
 
 '''
 "DO IT" - Palpatine
 '''
-train(epochs=30)
-generate(example_len=1000, examples=4)
+train(epochs=120)
+
+# for _ in range(4):
+#     print('-' * 40)
+#     print(generate(example_len=1000))
+
+print('Generating text...', end='', flush=True)
+text = generate(example_len=100000)
+with open(f'results/{filename}', 'w') as f:
+    f.write(text)
+print('DONE')

@@ -11,12 +11,21 @@ Training progress is reported in the terminal, but loss graphs are sent to `loca
 
 ## Repo Structure
 ├ **data**
+
     ├ hamlet
+
     ├ shakespeare
+
     ├ vonnegut
+
     └ *put your own text files in here*
+    
 ├ **saved_models** *(created upon first model save)*
+
 ├ model.py
+
 ├ train.py
+
 ├ utils.py
+
 └ visualize.py

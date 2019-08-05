@@ -53,8 +53,8 @@ def read_data(filename, batch_size, seq_size, val_ratio=0.1):
 
     # determine where to split data into training and validation data
     idx = int(val_ratio * X.shape[1])
-    #idx -= idx % seq_size
-
+    idx += seq_size - (idx % seq_size)
+              
     # split the data and put it on the right device
     X = X[:,:-idx].to(device)
     X_val = X[:,-idx:].to(device)

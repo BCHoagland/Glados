@@ -1,3 +1,5 @@
+import os
+import pathlib
 import torch
 import torch.nn.functional as F
 from os import remove
@@ -6,8 +8,10 @@ def get_device():
     return 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
 
-def one_hot(arr, n_labels):
-    return F.one_hot(arr, n_labels).float()
+def write_file(dirs, filename, text):
+    pathlib.Path(dirs).mkdir(parents=True, exist_ok=True)
+    with open(dirs + '/' + filename, 'w') as f:
+        f.write(text)
 
 def condense(filenames):
     with open(f'data/{"-".join(filenames)}.txt', 'w') as outfile:
@@ -19,6 +23,11 @@ def condense(filenames):
 
 def del_tmp(filename):
     remove(f'data/{filename}')
+
+def save_model(net, filename, epoch_num):
+    dirs = f'saved_models/{filename}'
+    pathlib.Path(dirs).mkdir(parents=True, exist_ok=True)
+    torch.save(net.state_dict(), f'{dirs}/epoch-{epoch_num}')
 
 def read_data(filename, batch_size, seq_size, val_ratio=0.1):
 
@@ -57,6 +66,10 @@ def read_data(filename, batch_size, seq_size, val_ratio=0.1):
     num_batches = X.shape[1] // seq_size
 
     return X, Y, X_val, Y_val, len(chars), char2int, int2char, num_batches
+
+
+def one_hot(arr, n_labels):
+    return F.one_hot(arr, n_labels).float()
 
 
 def batches(X, Y, batch_size, seq_size):

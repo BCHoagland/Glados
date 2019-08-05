@@ -3,13 +3,15 @@ import torch
 import torch.nn.functional as F
 
 from model import RNN
-from utils import read_data, one_hot, batches, get_device, condense, del_tmp
+
+from utils import read_data, one_hot, batches, get_device, write_file, save_model, condense, del_tmp
+
 from visualize import progress, plot
 
 
 batch_size = 128
 seq_size = 100
-vis_iter = 20
+save_iter = 50
 grad_norm = 5
 device = get_device()
 
@@ -64,7 +66,7 @@ def train(epochs=20):
             opt.step()
 
             # print training progress
-            progress(batch_num, num_batches, iters, epochs * num_batches, epoch)
+            progress(batch_num, num_batches, iters, epochs * num_batches, epoch + 1)
 
             # bookkeeping
             losses.append(loss)
@@ -72,8 +74,12 @@ def train(epochs=20):
             iters += 1
 
         # plot loss after every epoch
-        plot(epoch, torch.stack(losses), 'Loss', 'Training', '#5DE58D', refresh=False)
-        plot(epoch, validation_loss(), 'Loss', 'Validation', '#4AD2FF')
+        plot(epoch + 1, torch.stack(losses), 'Loss', 'Training', '#5DE58D', refresh=False)
+        plot(epoch + 1, validation_loss(), 'Loss', 'Validation', '#4AD2FF')
+
+        # save the model occasionally
+        if epoch % save_iter == save_iter - 1:
+            save_model(net, filename, epoch + 1)
 
 
 '''
@@ -121,14 +127,9 @@ def generate(first_chars='A', example_len=100):
 '''
 "DO IT" - Palpatine
 '''
-train(epochs=120)
-
-# for _ in range(4):
-#     print('-' * 40)
-#     print(generate(example_len=1000))
+train(epochs=100)
 
 print('Generating text...', end='', flush=True)
-text = generate(example_len=100000)
-with open(f'results/{filename}', 'w') as f:
-    f.write(text)
+text = generate(example_len=10000)
+write_file('results', filename, text)
 print('DONE')

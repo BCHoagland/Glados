@@ -14,9 +14,9 @@ grad_norm = 5
 device = get_device()
 
 # generate dataset
-try: filename = sys.argv[1]
-except: filename = 'shakespeare'
-X, Y, X_val, Y_val, n_chars, char2int, int2char, num_batches = read_data(filename, batch_size, seq_size)
+files = sys.argv[1:] if len(sys.argv) > 1 else 'shakespeare'
+filename = '-'.join(files)
+X, Y, X_val, Y_val, n_chars, char2int, int2char, num_batches = read_data(files, batch_size, seq_size)
 
 # make network and optimizer
 net = RNN(n_chars).to(device)
@@ -74,6 +74,9 @@ def train(epochs=20):
         # save the model occasionally
         if epoch % save_iter == save_iter - 1:
             save_model(net, filename, epoch + 1)
+    
+    # save model at the end of training
+    save_model(net, filename, 'final')
 
 
 '''

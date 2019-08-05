@@ -18,16 +18,20 @@ def save_model(net, filename, epoch_num):
     pathlib.Path(dirs).mkdir(parents=True, exist_ok=True)
     torch.save(net.state_dict(), f'{dirs}/epoch-{epoch_num}')
 
-def read_data(filename, batch_size, seq_size, val_ratio=0.1):
-    # read data
-    with open(f'data/{filename}', 'r') as f:
-        text = f.read()
+
+def read_data(filenames, batch_size, seq_size, val_ratio=0.1):
+    # read data from each given file
+    text = ''
+    if not isinstance(filenames, list): filenames = [filenames]
+    for filename in filenames:
+        with open(f'data/{filename}', 'r') as f:
+            text += f.read()
 
     # make encoding and decoding dictionaries
     chars = set(text)
     int2char = dict(enumerate(chars))
     char2int = {v: k for k, v in int2char.items()}
-    
+
     # make data divisible by batch and sequence sizes
     idx = -(len(text) % (batch_size * seq_size))
     encoded = [char2int[c] for c in text][:idx+1]

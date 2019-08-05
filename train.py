@@ -121,13 +121,9 @@ def generate(first_chars='A', example_len=100):
 '''
 "DO IT" - Palpatine
 '''
-train(epochs=4)
-
-# for _ in range(4):
-#     print('-' * 40)
-#     print(generate(example_len=1000))
+train(epochs=100)
 
 print('Generating text...', end='', flush=True)
-text = generate(example_len=1000)
+text = generate(example_len=10000)
 write_file('results', filename, text)
 print('DONE')

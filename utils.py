@@ -34,12 +34,11 @@ def read_data(filename, batch_size, seq_size, val_ratio=0.1):
     # make data divisible by batch and sequence sizes
     idx = -(len(text) % (batch_size * seq_size))
     encoded = [char2int[c] for c in text][:idx+1]
-
     # make data into batches
     device = get_device()
     X = torch.tensor(encoded[:-1]).view(batch_size, -1)
     Y = torch.tensor(encoded[1:]).view(batch_size, -1)
-
+    
     # ont hot encode the input data
     X = one_hot(X, len(chars))
 

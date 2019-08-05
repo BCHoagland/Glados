@@ -47,7 +47,6 @@ def validation_loss():
 def train(epochs=20):
     iters = 0
     for epoch in range(epochs):
-
         batch_num = 0
         losses = []
         h = net.blank_hidden(batch_size)

@@ -18,7 +18,7 @@ def condense(filenames):
     return f'{"-".join(filenames)}.txt'
 
 def del_tmp(filename):
-    remove(filename)
+    remove(f'data/{filename}')
 
 def read_data(filename, batch_size, seq_size, val_ratio=0.1):
 

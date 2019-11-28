@@ -49,7 +49,7 @@ def plot(x, y, data_type, name, color='#000', refresh=True):
     # save the modified data
     d[data_type][name]['points'].append((x, y))
 
-    # the actua plotting
+    # the actual plotting
     if refresh:
         win = data_type
         title = data_type

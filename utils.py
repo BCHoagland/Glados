@@ -37,7 +37,6 @@ def read_data(filenames, batch_size, seq_size, val_ratio=0.1):
     encoded = [char2int[c] for c in text][:idx+1]
 
     # make data into batches
-    device = get_device()
     X = torch.tensor(encoded[:-1]).view(batch_size, -1)
     Y = torch.tensor(encoded[1:]).view(batch_size, -1)
 
@@ -49,9 +48,9 @@ def read_data(filenames, batch_size, seq_size, val_ratio=0.1):
     idx += seq_size - (idx % seq_size)
 
     # split the data and put it on the right device
+    device = get_device()
     X = X[:,:-idx].to(device)
     X_val = X[:,-idx:].to(device)
-
     Y = Y[:,:-idx].to(device)
     Y_val = Y[:,-idx:].to(device)
 

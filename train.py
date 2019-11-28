@@ -23,9 +23,9 @@ net = RNN(n_chars).to(device)
 opt = torch.optim.Adam(net.parameters(), lr=0.005)
 
 
-'''
-TRAINING
-'''
+
+#! TRAINING
+
 # get loss for all validation batches
 def validation_loss():
     with torch.no_grad():
@@ -79,9 +79,9 @@ def train(epochs=20):
     save_model(net, filename, 'final')
 
 
-'''
-GENERATION
-'''
+
+#! GENERATION
+
 # convert network output to character
 def net2char(x, top_k=5):
     # get top k probabilities
@@ -121,10 +121,10 @@ def generate(first_chars='A', example_len=100):
         return f'\n{chars}'
 
 
-'''
-"DO IT" - Palpatine
-'''
-train(epochs=100)
+
+#! "DO IT" - Palpatine
+
+train(epochs=10)
 
 print('Generating text...', end='', flush=True)
 text = generate(example_len=10000)

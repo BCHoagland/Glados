@@ -7,11 +7,12 @@ from utils import read_data, one_hot, batches, get_device, write_file, save_mode
 from visualize import progress, plot
 
 
+# hyperparameters
 batch_size = 128
-seq_size = 100
-save_iter = 50
-grad_norm = 5
-device = get_device()
+seq_size = 100                      # length of text sequences used during training
+save_iter = 50                      # how often the model gets saved during training
+grad_norm = 5                       # max gradient component (all gradient components greater than this will be clipped)
+device = get_device()               # gpu if one's available, cpu if not
 
 # generate dataset
 files = sys.argv[1:] if len(sys.argv) > 1 else 'shakespeare'
@@ -23,11 +24,12 @@ net = RNN(n_chars).to(device)
 opt = torch.optim.Adam(net.parameters(), lr=0.005)
 
 
-'''
-TRAINING
-'''
-# get loss for all validation batches
+############
+# TRAINING #
+############
+
 def validation_loss():
+    '''Return the model loss on the validation set'''
     with torch.no_grad():
         val_losses = []
         val_h = net.blank_hidden(batch_size)
@@ -38,8 +40,15 @@ def validation_loss():
         val_losses = torch.stack(val_losses)
     return val_losses
 
-# train network
+
 def train(epochs=20):
+    '''
+    Train the RNN and save the model
+
+    Inputs
+    ------
+    epochs: the number of rounds we train on the whole dataset
+    '''
     iters = 0
     for epoch in range(epochs):
 
@@ -79,11 +88,24 @@ def train(epochs=20):
     save_model(net, filename, 'final')
 
 
-'''
-GENERATION
-'''
-# convert network output to character
+##############
+# GENERATION #
+##############
+
+# 
 def net2char(x, top_k=5):
+    '''
+    convert network output to a single character
+    
+    Inputs
+    ------
+    x: output from network
+    top_k: characters are chosen stochastically. To speed up computation, we only consider the k most probable characters
+
+    Outputs
+    -------
+    a single character
+    '''
     # get top k probabilities
     probs = F.softmax(x.squeeze(), dim=0)
     probs, choices = torch.topk(probs, k=top_k)
@@ -92,13 +114,22 @@ def net2char(x, top_k=5):
     idx = torch.multinomial(probs, 1)
     return int2char[choices[idx].item()]
 
-# take a single character and encode it so it works as network input
+
 def format_input(x):
+    '''take a single character x and encode it so it works as network input'''
     x = torch.tensor([[char2int[x]]])
     return one_hot(x, n_chars).to(device)
 
-# generate multiple example text chunks
+
 def generate(first_chars='A', example_len=100):
+    '''
+    Generate example text chunk
+
+    Inputs
+    ------
+    first_chars: the first characters of the generated text
+    example_len: number of characters in the generated text (excluding first_chars)
+    '''
     with torch.no_grad():
         first_chars = list(first_chars)
         chars = ''.join(first_chars)
@@ -121,9 +152,9 @@ def generate(first_chars='A', example_len=100):
         return f'\n{chars}'
 
 
-'''
-"DO IT" - Palpatine
-'''
+#######################
+# "DO IT" - Palpatine #
+#######################
 train(epochs=100)
 
 print('Generating text...', end='', flush=True)

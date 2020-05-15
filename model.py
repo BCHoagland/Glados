@@ -15,14 +15,12 @@ class RNN(nn.Module):
 
         # network layers
         self.lstm = nn.LSTM(n_chars, n_hidden, n_layers, dropout=drop_prob, batch_first=True)
-        self.dropout = nn.Dropout(drop_prob)
         self.linear = nn.Linear(n_hidden, n_chars)
 
 
     def forward(self, x, hidden):
         '''feed data through the network'''
         out, hidden = self.lstm(x, hidden)
-        out = self.dropout(out)
         out = self.linear(out)
         return out, hidden
 

@@ -37,12 +37,13 @@ def plot(x, y, data_type, name, color='#000', refresh=True):
     
     # if given a single number, save its float
     if not isinstance(y, float):
-        if len(y.shape) == 0:
+        if y.shape[0] == 1:
             y = float(y)
         # if given a set of numbers, save their mean and confidence interval info
         else:
             y = y.cpu()
-            mean, std = y.mean().item(), 3.291 * y.std().item() / sqrt(len(y))
+            mean = y.mean().item()
+            std = 3.291 * y.std().item() / sqrt(len(y))
             lower, upper = mean - std, mean + std
             y = (lower, mean, upper)
 
